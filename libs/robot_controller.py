@@ -1,23 +1,79 @@
 """
-  Library of EV3 robot functions that are useful in many different applications. For example things
-  like arm_up, arm_down, driving around, or doing things with the Pixy camera.
+STUDENTS:
+  This module contains the  Snatch3r  class.  Over the course of several
+  sessions, you will implement methods in this class, including ones to:
+    -- Make the robot move forward a given number of inches at a given speed
+    -- Raise the arm up, make it go down
+    -- XXX
 
-  Add commands as needed to support the features you'd like to implement.  For organizational
-  purposes try to only write methods into this library that are NOT specific to one tasks, but
-  rather methods that would be useful regardless of the activity.  For example, don't make
-  a connection to the remote control that sends the arm up if the ir remote control up button
-  is pressed.  That's a specific input --> output task.  Maybe some other task would want to use
-  the IR remote up button for something different.  Instead just make a method called arm_up that
-  could be called.  That way it's a generic action that could be used in any task.
+  In your capstone project, you will call the methods you implement here,
+  along with other methods of your own choosing.
+
+  All the methods should be  general-purpose methods that could be used for
+  a variety of tasks.  For example, suppose that you want to solve the
+  following problem:
+    XXX
+  Here, you might implement a method YYY that YYY.  Such a method would be
+  useful not only ...
 """
 
 import ev3dev.ev3 as ev3
-import math
-import time
+import sys
 
 
 class Snatch3r(object):
-    """Commands for the Snatch3r robot that might be useful in many different programs."""
-    
-    # TODO: Implement the Snatch3r class as needed when working the sandox exercises
-    # (and delete these comments)
+    """ Implements methods for a Lego EV3 Snatch3r robot. """
+
+    DEGREES_PER_INCH = 90
+
+    def __init__(self):
+        """
+        Stores the motors and sensors for an EV3 Snatch3r robot
+        and confirms that all of them are connected.
+        """
+        self.left_wheel_motor = ev3.LargeMotor(ev3.OUTPUT_B)
+        self.right_wheel_motor = ev3.LargeMotor(ev3.OUTPUT_C)
+        self.arm_motor = ev3.MediumMotor(ev3.OUTPUT_A)
+
+        self.output_devices = [self.left_wheel_motor, self.right_wheel_motor,
+                               self.arm_motor]
+        self.input_devices = []
+        self.devices = self.output_devices + self.input_devices
+
+        self.assert_devices_are_connected()
+
+    def drive_inches(self, inches, degrees_per_second):
+        """ Makes the robot move the given distance (in inches) at the given
+        speed (in degrees per second).  Positive distances make the robot
+        move forward, negative distances make it move backward.
+        """
+        self.assert_devices_are_connected()
+
+        position = inches * Snatch3r.DEGREES_PER_INCH
+        brake = ev3.Motor.STOP_ACTION_BRAKE
+
+        self.left_wheel_motor.run_to_rel_pos(position_sp=position,
+                                             speed_sp=degrees_per_second,
+                                             stop_action=brake)
+        self.left_wheel_motor.run_to_rel_pos(position_sp=position,
+                                             speed_sp=degrees_per_second,
+                                             stop_action=brake)
+        self.left_wheel_motor.wait(ev3.Motor.STATE_RUNNING)
+        self.right_wheel_motor.wait(ev3.Motor.STATE_RUNNING)
+
+    def assert_devices_are_connected(self):
+        """
+        Throws an AssertionError if any of the expected input or output devices
+        are not plugged in successfully.
+        """
+        for device in self.devices:
+            try:
+                assert device.connected
+            except AssertionError:
+                message = "Device {} does not seem to be plugged in.\n"
+                print_error(message.format(device))
+                raise
+
+
+def print_error(message):
+    print(message, file=sys.stderr)
